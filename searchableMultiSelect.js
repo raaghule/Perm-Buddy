@@ -22,6 +22,7 @@ export default class SearchableMultiSelect extends LightningElement {
             const opt = this.options.find(o => o.value === val);
             return opt ? opt : { value: val, label: val };
         });
+
     }
 
     handleSearch(event) {

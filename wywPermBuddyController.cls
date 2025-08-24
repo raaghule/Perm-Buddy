@@ -13,6 +13,8 @@ public with sharing class wywPermBuddyController {
 
         @AuraEnabled public List<String> fieldApiNames; // For field export, format: Object.Field
 
+
+
     }
 
     @AuraEnabled
@@ -159,6 +161,7 @@ public with sharing class wywPermBuddyController {
 
             String access = cols[4].trim();
 
+
             Id parentId;
 
             if (personaKind == 'Profile') parentId = profileByName.get(personaApi);
@@ -275,6 +278,7 @@ public with sharing class wywPermBuddyController {
 
         Set<String> profileNames = new Set<String>();
 
+
         Set<String> permSetNames = new Set<String>();
 
         for (List<String> cols : rows) {
@@ -283,13 +287,18 @@ public with sharing class wywPermBuddyController {
 
             String personaKind = cols[1].trim();
 
+
             String personaApi = cols[2].trim();
 
             if (personaKind == 'Profile') profileNames.add(personaApi);
 
             else if (personaKind == 'PermissionSet') permSetNames.add(personaApi);
 
+
+
+
         }
+
 
         Map<String, Id> profileByName = new Map<String, Id>();
 
@@ -339,15 +348,19 @@ public with sharing class wywPermBuddyController {
 
             Boolean modifyAll = toBool(cols[8]);
 
+
             Id parentId;
 
             if (personaKind == 'Profile') parentId = profileByName.get(personaApi);
 
+
             else if (personaKind == 'PermissionSet') parentId = permSetByName.get(personaApi);
+
 
             else continue;
 
             if (parentId == null) continue; // skip unknown parent
+
 
             ObjectPermissions op = new ObjectPermissions();
 

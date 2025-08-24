@@ -17,6 +17,7 @@
 }
 .pb-header p {
     font-size: 0.9rem;
+
 }
 .info {
     margin-bottom: 1rem;
@@ -31,9 +32,11 @@
 }
 .export-btn:hover, .import-btn:hover {
     background: #1558b0;
+
 }
 .button-container {
     text-align: center;
+
 }
 .import-file {
     margin-top: 12px;
