@@ -1,7 +1,6 @@
 public with sharing class wywPermBuddyController {
 
- 
-
+    @AuraEnabled
     public class ExportRequest {
 
         @AuraEnabled public String exportType; // 'Object' or 'Field'
@@ -15,9 +14,9 @@ public with sharing class wywPermBuddyController {
         @AuraEnabled public List<String> fieldApiNames; // For field export, format: Object.Field
 
 
-    }
 
- 
+
+    }
 
     @AuraEnabled
 
@@ -41,8 +40,6 @@ public with sharing class wywPermBuddyController {
 
         }
 
- 
-
         // Normalize line endings and remove empty lines
 
         List<String> lines = new List<String>();
@@ -58,8 +55,6 @@ public with sharing class wywPermBuddyController {
             throw new AuraHandledException('CSV must contain headers and at least one data row.');
 
         }
-
- 
 
         // Header validation
 
@@ -97,8 +92,6 @@ public with sharing class wywPermBuddyController {
 
     }
 
- 
-
     // ---------------- Field Permissions ----------------
 
     private static void applyFieldPermissions(List<String> lines) {
@@ -111,13 +104,9 @@ public with sharing class wywPermBuddyController {
 
         }
 
- 
-
         Set<String> profileNames = new Set<String>();
 
         Set<String> permSetNames = new Set<String>();
-
- 
 
         for (List<String> cols : rows) {
 
@@ -132,8 +121,6 @@ public with sharing class wywPermBuddyController {
             else if (personaKind == 'PermissionSet') permSetNames.add(personaApi);
 
         }
-
- 
 
         Map<String, Id> profileByName = new Map<String, Id>();
 
@@ -159,8 +146,6 @@ public with sharing class wywPermBuddyController {
 
         }
 
- 
-
         List<FieldPermissions> desired = new List<FieldPermissions>();
 
         for (List<String> cols : rows) {
@@ -177,7 +162,7 @@ public with sharing class wywPermBuddyController {
 
             String access = cols[4].trim();
 
- 
+
 
             Id parentId;
 
@@ -188,8 +173,6 @@ public with sharing class wywPermBuddyController {
             else continue;
 
             if (parentId == null) continue;
-
- 
 
             FieldPermissions fp = new FieldPermissions();
 
@@ -209,8 +192,6 @@ public with sharing class wywPermBuddyController {
 
         if (desired.isEmpty()) return;
 
- 
-
         try {
 
             upsertFieldPermissions(desired);
@@ -222,8 +203,6 @@ public with sharing class wywPermBuddyController {
         }
 
     }
-
- 
 
     private static void upsertFieldPermissions(List<FieldPermissions> desired) {
 
@@ -254,8 +233,6 @@ public with sharing class wywPermBuddyController {
             existingByKey.put(ex.ParentId + '|' + ex.Field, ex);
 
         }
-
- 
 
         List<FieldPermissions> toInsert = new List<FieldPermissions>();
 
@@ -289,8 +266,6 @@ public with sharing class wywPermBuddyController {
 
     }
 
- 
-
     // ---------------- Object Permissions ----------------
 
     private static void applyObjectPermissions(List<String> lines) {
@@ -303,9 +278,8 @@ public with sharing class wywPermBuddyController {
 
         }
 
- 
-
         Set<String> profileNames = new Set<String>();
+
 
         Set<String> permSetNames = new Set<String>();
 
@@ -315,14 +289,19 @@ public with sharing class wywPermBuddyController {
 
             String personaKind = cols[1].trim();
 
+
             String personaApi = cols[2].trim();
 
             if (personaKind == 'Profile') profileNames.add(personaApi);
 
             else if (personaKind == 'PermissionSet') permSetNames.add(personaApi);
 
-        }
 
+            String personaApi = cols[2].trim();
+
+
+
+        }
 
 
         Map<String, Id> profileByName = new Map<String, Id>();
@@ -349,8 +328,6 @@ public with sharing class wywPermBuddyController {
 
         }
 
- 
-
         List<ObjectPermissions> desired = new List<ObjectPermissions>();
 
         for (List<String> cols : rows) {
@@ -376,17 +353,20 @@ public with sharing class wywPermBuddyController {
             Boolean modifyAll = toBool(cols[8]);
 
 
-
             Id parentId;
 
             if (personaKind == 'Profile') parentId = profileByName.get(personaApi);
 
+
+
+           
+
             else if (personaKind == 'PermissionSet') parentId = permSetByName.get(personaApi);
+
 
             else continue;
 
             if (parentId == null) continue; // skip unknown parent
-
 
 
             ObjectPermissions op = new ObjectPermissions();
@@ -413,8 +393,6 @@ public with sharing class wywPermBuddyController {
 
         if (desired.isEmpty()) return;
 
- 
-
         try {
 
             upsertObjectPermissions(desired);
@@ -426,8 +404,6 @@ public with sharing class wywPermBuddyController {
         }
 
     }
-
- 
 
     private static void upsertObjectPermissions(List<ObjectPermissions> desired) {
 
@@ -462,8 +438,6 @@ public with sharing class wywPermBuddyController {
             existingByKey.put(ex.ParentId + '|' + ex.SObjectType, ex);
 
         }
-
- 
 
         List<ObjectPermissions> toInsert = new List<ObjectPermissions>();
 
@@ -505,11 +479,7 @@ public with sharing class wywPermBuddyController {
 
     }
 
- 
-
     // ---------------- EXPORT FUNCTIONALITY ----------------
-
- 
 
     @AuraEnabled(cacheable=true)
 
@@ -529,35 +499,27 @@ public with sharing class wywPermBuddyController {
 
     }
 
- 
-
     @AuraEnabled(cacheable=true)
-
+    @AuraEnabled(cacheable=true)
     public static List<String> getAllProfileNames() {
-
-        return new List<String>(new Map<String, Profile>(
-
-            [SELECT Name FROM Profile]
-
-        ).keySet());
-
+        List<String> names = new List<String>();
+        for (Profile p : [SELECT Name FROM Profile]) {
+            names.add(p.Name);
+        }
+        names.sort();
+        return names;
     }
-
- 
 
     @AuraEnabled(cacheable=true)
 
     public static List<String> getAllPermissionSetNames() {
-
-        return new List<String>(new Map<String, PermissionSet>(
-
-            [SELECT Name FROM PermissionSet]
-
-        ).keySet());
-
+        List<String> names = new List<String>();
+        for (PermissionSet ps : [SELECT Name FROM PermissionSet]) {
+            names.add(ps.Name);
+        }
+        names.sort();
+        return names;
     }
-
- 
 
     @AuraEnabled(cacheable=true)
 
@@ -580,8 +542,6 @@ public with sharing class wywPermBuddyController {
         return new List<String>(fields);
 
     }
-
- 
 
     @AuraEnabled
 
@@ -730,8 +690,6 @@ public with sharing class wywPermBuddyController {
 
     // ----------- Helper Methods -----------
 
- 
-
     // Converts a string value to Boolean
 
     //
@@ -755,8 +713,6 @@ private static Boolean toBool(String val) {
     return v == 'true' || v == '1' || v == 'yes' || v == 'y';
 
 }
-
- 
 
 /**
 

@@ -5,13 +5,25 @@
     margin-bottom: 16px;
 }
 
+
+.pb-header {
+    text-align: center;
+    padding: 1rem 0;
+    background: #f8f9fa;
+}
+.pb-header h1 {
+    font-weight: 500;
+    color: #202124;
+    margin-bottom: 0.25rem;
+}
+.pb-header p {
+    font-size: 0.9rem;
+
 .header {
     text-align: center;
     margin-bottom: 1rem;
 }
-.header h1 {
-    font-weight: 400;
-    color: #202124;
+
 }
 .info {
     margin-bottom: 1rem;

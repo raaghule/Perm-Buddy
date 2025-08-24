@@ -1,13 +1,14 @@
 <template>
-    <div class="header">
-        <h1>Perm Buddy</h1>
-        <p>Please see sample CSV for Import/Export:
-            <a href={fieldSampleUrl} download>Field Sample</a> |
-            <a href={objectSampleUrl} download>Object Sample</a>
-        </p>
-    </div>
 
-    <lightning-card title="Permission Buddy">
+    <lightning-card>
+        <div slot="title" class="pb-header">
+            <h1>Perm Buddy</h1>
+            <p>Please see sample CSV for Import/Export:
+                <a href={fieldSampleUrl} download>Field Sample</a> |
+                <a href={objectSampleUrl} download>Object Sample</a>
+            </p>
+        </div>
+
         <div class="slds-p-around_medium">
             <p class="info">Use the options below to import or export object and field permissions. Only CSV files are supported.</p>
 
@@ -39,10 +40,12 @@
                 <lightning-input type="file" label="Import CSV" accept=".csv" onchange={handleFileChange} class="import-file"></lightning-input>
                 <lightning-button label="Import" onclick={handleImport} class="slds-m-top_medium import-btn"></lightning-button>
             </template>
-        </div>
-    </lightning-card>
+              <div class="support">
+                  <a href="mailto:raviswanath@outlook.com">Developer Support</a>
+              </div>
+          </div>
+      </lightning-card>
+  </template>
 
-    <div class="support">
-        <a href="mailto:raviswanath@outlook.com">Developer Support</a>
-    </div>
-</template>
+
+
