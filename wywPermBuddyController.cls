@@ -1,7 +1,6 @@
 public with sharing class wywPermBuddyController {
 
- 
-
+    @AuraEnabled
     public class ExportRequest {
 
         @AuraEnabled public String exportType; // 'Object' or 'Field'
@@ -14,11 +13,7 @@ public with sharing class wywPermBuddyController {
 
         @AuraEnabled public List<String> fieldApiNames; // For field export, format: Object.Field
 
-        @AuraEnabled public String personaType; // 'Profile' or 'PermissionSet'
-
     }
-
- 
 
     @AuraEnabled
 
@@ -42,8 +37,6 @@ public with sharing class wywPermBuddyController {
 
         }
 
- 
-
         // Normalize line endings and remove empty lines
 
         List<String> lines = new List<String>();
@@ -60,15 +53,13 @@ public with sharing class wywPermBuddyController {
 
         }
 
- 
-
         // Header validation
 
         String header = lines[0].trim();
 
         if (targetType == 'Field') {
 
-            String expected = 'Object API Name,Field API Name,Access (Read/Edit),Profile/PermissionSet,Persona Name';
+            String expected = 'Object API Name,Field API Name,Persona,Persona API Name,Access';
 
             if (header != expected) {
 
@@ -80,7 +71,7 @@ public with sharing class wywPermBuddyController {
 
         } else if (targetType == 'Object') {
 
-            String expected = 'Object API Name,Profile/Permission Set API Name,Read,Edit,Create,Delete,View All,Modify All';
+            String expected = 'Object API Name,Persona,Persona API Name,Read,Edit,Create,Delete,View All,Modify All';
 
             if (header != expected) {
 
@@ -98,8 +89,6 @@ public with sharing class wywPermBuddyController {
 
     }
 
- 
-
     // ---------------- Field Permissions ----------------
 
     private static void applyFieldPermissions(List<String> lines) {
@@ -112,29 +101,23 @@ public with sharing class wywPermBuddyController {
 
         }
 
- 
-
         Set<String> profileNames = new Set<String>();
 
         Set<String> permSetNames = new Set<String>();
-
- 
 
         for (List<String> cols : rows) {
 
             if (cols.size() < 5) continue;
 
-            String personaKind = cols[3].trim();
+            String personaKind = cols[2].trim();
 
-            String personaApi = cols[4].trim();
+            String personaApi = cols[3].trim();
 
             if (personaKind == 'Profile') profileNames.add(personaApi);
 
             else if (personaKind == 'PermissionSet') permSetNames.add(personaApi);
 
         }
-
- 
 
         Map<String, Id> profileByName = new Map<String, Id>();
 
@@ -160,8 +143,6 @@ public with sharing class wywPermBuddyController {
 
         }
 
- 
-
         List<FieldPermissions> desired = new List<FieldPermissions>();
 
         for (List<String> cols : rows) {
@@ -172,13 +153,11 @@ public with sharing class wywPermBuddyController {
 
             String fieldApi = cols[1].trim();
 
-            String access = cols[2].trim();
+            String personaKind = cols[2].trim();
 
-            String personaKind = cols[3].trim();
+            String personaApi = cols[3].trim();
 
-            String personaApi = cols[4].trim();
-
- 
+            String access = cols[4].trim();
 
             Id parentId;
 
@@ -189,8 +168,6 @@ public with sharing class wywPermBuddyController {
             else continue;
 
             if (parentId == null) continue;
-
- 
 
             FieldPermissions fp = new FieldPermissions();
 
@@ -210,8 +187,6 @@ public with sharing class wywPermBuddyController {
 
         if (desired.isEmpty()) return;
 
- 
-
         try {
 
             upsertFieldPermissions(desired);
@@ -223,8 +198,6 @@ public with sharing class wywPermBuddyController {
         }
 
     }
-
- 
 
     private static void upsertFieldPermissions(List<FieldPermissions> desired) {
 
@@ -255,8 +228,6 @@ public with sharing class wywPermBuddyController {
             existingByKey.put(ex.ParentId + '|' + ex.Field, ex);
 
         }
-
- 
 
         List<FieldPermissions> toInsert = new List<FieldPermissions>();
 
@@ -290,8 +261,6 @@ public with sharing class wywPermBuddyController {
 
     }
 
- 
-
     // ---------------- Object Permissions ----------------
 
     private static void applyObjectPermissions(List<String> lines) {
@@ -304,25 +273,29 @@ public with sharing class wywPermBuddyController {
 
         }
 
- 
+        Set<String> profileNames = new Set<String>();
 
-        Set<String> parentApiNames = new Set<String>();
+        Set<String> permSetNames = new Set<String>();
 
         for (List<String> cols : rows) {
 
-            if (cols.size() < 8) continue;
+            if (cols.size() < 9) continue;
 
-            parentApiNames.add(cols[1].trim());
+            String personaKind = cols[1].trim();
+
+            String personaApi = cols[2].trim();
+
+            if (personaKind == 'Profile') profileNames.add(personaApi);
+
+            else if (personaKind == 'PermissionSet') permSetNames.add(personaApi);
 
         }
 
- 
-
         Map<String, Id> profileByName = new Map<String, Id>();
 
-        if (!parentApiNames.isEmpty()) {
+        if (!profileNames.isEmpty()) {
 
-            for (Profile p : [SELECT Id, Name FROM Profile WHERE Name IN :parentApiNames]) {
+            for (Profile p : [SELECT Id, Name FROM Profile WHERE Name IN :profileNames]) {
 
                 profileByName.put(p.Name, p.Id);
 
@@ -332,9 +305,9 @@ public with sharing class wywPermBuddyController {
 
         Map<String, Id> permSetByName = new Map<String, Id>();
 
-        if (!parentApiNames.isEmpty()) {
+        if (!permSetNames.isEmpty()) {
 
-            for (PermissionSet ps : [SELECT Id, Name FROM PermissionSet WHERE Name IN :parentApiNames]) {
+            for (PermissionSet ps : [SELECT Id, Name FROM PermissionSet WHERE Name IN :permSetNames]) {
 
                 permSetByName.put(ps.Name, ps.Id);
 
@@ -342,39 +315,39 @@ public with sharing class wywPermBuddyController {
 
         }
 
- 
-
         List<ObjectPermissions> desired = new List<ObjectPermissions>();
 
         for (List<String> cols : rows) {
 
-            if (cols.size() < 8) continue;
+            if (cols.size() < 9) continue;
 
             String sObjectName = cols[0].trim();
 
-            String parentApi = cols[1].trim();
+            String personaKind = cols[1].trim();
 
-            Boolean canRead   = toBool(cols[2]);
+            String personaApi = cols[2].trim();
 
-            Boolean canEdit   = toBool(cols[3]);
+            Boolean canRead   = toBool(cols[3]);
 
-            Boolean canCreate = toBool(cols[4]);
+            Boolean canEdit   = toBool(cols[4]);
 
-            Boolean canDelete = toBool(cols[5]);
+            Boolean canCreate = toBool(cols[5]);
 
-            Boolean viewAll   = toBool(cols[6]);
+            Boolean canDelete = toBool(cols[6]);
 
-            Boolean modifyAll = toBool(cols[7]);
+            Boolean viewAll   = toBool(cols[7]);
 
- 
+            Boolean modifyAll = toBool(cols[8]);
 
-            Id parentId = profileByName.get(parentApi);
+            Id parentId;
 
-            if (parentId == null) parentId = permSetByName.get(parentApi);
+            if (personaKind == 'Profile') parentId = profileByName.get(personaApi);
+
+            else if (personaKind == 'PermissionSet') parentId = permSetByName.get(personaApi);
+
+            else continue;
 
             if (parentId == null) continue; // skip unknown parent
-
- 
 
             ObjectPermissions op = new ObjectPermissions();
 
@@ -400,8 +373,6 @@ public with sharing class wywPermBuddyController {
 
         if (desired.isEmpty()) return;
 
- 
-
         try {
 
             upsertObjectPermissions(desired);
@@ -413,8 +384,6 @@ public with sharing class wywPermBuddyController {
         }
 
     }
-
- 
 
     private static void upsertObjectPermissions(List<ObjectPermissions> desired) {
 
@@ -449,8 +418,6 @@ public with sharing class wywPermBuddyController {
             existingByKey.put(ex.ParentId + '|' + ex.SObjectType, ex);
 
         }
-
- 
 
         List<ObjectPermissions> toInsert = new List<ObjectPermissions>();
 
@@ -492,11 +459,7 @@ public with sharing class wywPermBuddyController {
 
     }
 
- 
-
     // ---------------- EXPORT FUNCTIONALITY ----------------
-
- 
 
     @AuraEnabled(cacheable=true)
 
@@ -516,35 +479,27 @@ public with sharing class wywPermBuddyController {
 
     }
 
- 
-
     @AuraEnabled(cacheable=true)
-
+    @AuraEnabled(cacheable=true)
     public static List<String> getAllProfileNames() {
-
-        return new List<String>(new Map<String, Profile>(
-
-            [SELECT Name FROM Profile]
-
-        ).keySet());
-
+        List<String> names = new List<String>();
+        for (Profile p : [SELECT Name FROM Profile]) {
+            names.add(p.Name);
+        }
+        names.sort();
+        return names;
     }
-
- 
 
     @AuraEnabled(cacheable=true)
 
     public static List<String> getAllPermissionSetNames() {
-
-        return new List<String>(new Map<String, PermissionSet>(
-
-            [SELECT Name FROM PermissionSet]
-
-        ).keySet());
-
+        List<String> names = new List<String>();
+        for (PermissionSet ps : [SELECT Name FROM PermissionSet]) {
+            names.add(ps.Name);
+        }
+        names.sort();
+        return names;
     }
-
- 
 
     @AuraEnabled(cacheable=true)
 
@@ -568,215 +523,152 @@ public with sharing class wywPermBuddyController {
 
     }
 
- 
-
     @AuraEnabled
 
     public static String exportPermissions(ExportRequest req) {
-
         if (req == null || String.isBlank(req.exportType)) {
-
             throw new AuraHandledException('Export type is required.');
-
         }
-
         List<String> rows = new List<String>();
-
         Integer recordCount = 0;
-
         Integer recordLimit = 10000;
 
- 
-
         if (req.exportType == 'Object') {
-
-            rows.add('Object API Name,Profile/Permission Set,Persona API Name,Read,Edit,Create,Delete,View All,Modify All');
-
-            List<String> personaNames = req.personaType == 'Profile' ? req.profileNames : req.permSetNames;
-
-            if (personaNames == null || personaNames.isEmpty() || req.objectApiNames == null || req.objectApiNames.isEmpty()) {
-
+            rows.add('Object API Name,Persona,Persona API Name,Read,Edit,Create,Delete,View All,Modify All');
+            if (req.objectApiNames == null || req.objectApiNames.isEmpty() ||
+                ((req.profileNames == null || req.profileNames.isEmpty()) &&
+                 (req.permSetNames == null || req.permSetNames.isEmpty()))) {
                 throw new AuraHandledException('Please select at least one object and persona.');
-
             }
-
-            Map<String, Id> personaIdMap = new Map<String, Id>();
-
-            if (req.personaType == 'Profile') {
-
-                for (Profile p : [SELECT Id, Name FROM Profile WHERE Name IN :personaNames]) {
-
-                    personaIdMap.put(p.Name, p.Id);
-
+            // Collect profile ids by name
+            Map<String, Id> profileIdMap = new Map<String, Id>();
+            if (req.profileNames != null && !req.profileNames.isEmpty()) {
+                for (Profile p : [SELECT Id, Name FROM Profile WHERE Name IN :req.profileNames]) {
+                    profileIdMap.put(p.Name, p.Id);
                 }
-
-            } else {
-
-                for (PermissionSet ps : [SELECT Id, Name FROM PermissionSet WHERE Name IN :personaNames]) {
-
-                    personaIdMap.put(ps.Name, ps.Id);
-
-                }
-
             }
+            // Collect permission set ids by name
+            Map<String, Id> permSetIdMap = new Map<String, Id>();
+            if (req.permSetNames != null && !req.permSetNames.isEmpty()) {
+                for (PermissionSet ps : [SELECT Id, Name FROM PermissionSet WHERE Name IN :req.permSetNames]) {
+                    permSetIdMap.put(ps.Name, ps.Id);
+                }
+            }
+            Set<Id> personaIds = new Set<Id>();
+            personaIds.addAll(profileIdMap.values());
+            personaIds.addAll(permSetIdMap.values());
 
+            // Query object permissions for selected personas
             List<ObjectPermissions> perms = [
-
                 SELECT SObjectType, ParentId, PermissionsRead, PermissionsEdit, PermissionsCreate, PermissionsDelete, PermissionsViewAllRecords, PermissionsModifyAllRecords
-
                 FROM ObjectPermissions
-
-                WHERE SObjectType IN :req.objectApiNames AND ParentId IN :personaIdMap.values()
-
+                WHERE SObjectType IN :req.objectApiNames AND ParentId IN :personaIds
             ];
+            Map<Id, String> profileNameById = new Map<Id, String>();
+            for (String name : profileIdMap.keySet()) profileNameById.put(profileIdMap.get(name), name);
+            Map<Id, String> permSetNameById = new Map<Id, String>();
+            for (String name : permSetIdMap.keySet()) permSetNameById.put(permSetIdMap.get(name), name);
 
-            Map<Id, String> personaApiNameMap = new Map<Id, String>();
-
-            for (String key : personaIdMap.keySet()) {
-
-                personaApiNameMap.put(personaIdMap.get(key), key);
-
-            }
-
+            // Build CSV rows
             for (ObjectPermissions op : perms) {
-
                 if (++recordCount > recordLimit) throw new AuraHandledException('Export limit exceeded (10,000 records). Please reduce your selection.');
-
-                String personaApi = personaApiNameMap.get(op.ParentId);
-
-                String personaType = req.personaType == 'Profile' ? 'Profile' : 'PermissionSet';
-
+                String personaType;
+                String personaApi;
+                if (profileNameById.containsKey(op.ParentId)) {
+                    personaType = 'Profile';
+                    personaApi = profileNameById.get(op.ParentId);
+                } else {
+                    personaType = 'PermissionSet';
+                    personaApi = permSetNameById.get(op.ParentId);
+                }
                 rows.add(String.join(new List<String>{
-
                     op.SObjectType,
-
                     personaType,
-
                     personaApi,
-
                     op.PermissionsRead ? 'True' : 'False',
-
                     op.PermissionsEdit ? 'True' : 'False',
-
                     op.PermissionsCreate ? 'True' : 'False',
-
                     op.PermissionsDelete ? 'True' : 'False',
-
                     op.PermissionsViewAllRecords ? 'True' : 'False',
-
                     op.PermissionsModifyAllRecords ? 'True' : 'False'
-
                 }, ','));
-
             }
-
         } else if (req.exportType == 'Field') {
-
-            rows.add('Object API Name,Field API Name,Access (Read/Edit),Profile/PermissionSet,Persona Name');
-
-            List<String> personaNames = req.personaType == 'Profile' ? req.profileNames : req.permSetNames;
-
-            if (personaNames == null || personaNames.isEmpty() || req.objectApiNames == null || req.objectApiNames.isEmpty() || req.fieldApiNames == null || req.fieldApiNames.isEmpty()) {
-
-                throw new AuraHandledException('Please select at least one object, persona, and field.');
-
+            rows.add('Object API Name,Field API Name,Persona,Persona API Name,Access');
+            if (req.objectApiNames == null || req.objectApiNames.isEmpty() ||
+                req.fieldApiNames == null || req.fieldApiNames.isEmpty() ||
+                ((req.profileNames == null || req.profileNames.isEmpty()) &&
+                 (req.permSetNames == null || req.permSetNames.isEmpty()))) {
+                throw new AuraHandledException('Please select at least one object, field, and persona.');
             }
-
-            Map<String, Id> personaIdMap = new Map<String, Id>();
-
-            if (req.personaType == 'Profile') {
-
-                for (Profile p : [SELECT Id, Name FROM Profile WHERE Name IN :personaNames]) {
-
-                    personaIdMap.put(p.Name, p.Id);
-
+            // Collect profile ids by name
+            Map<String, Id> profileIdMap = new Map<String, Id>();
+            if (req.profileNames != null && !req.profileNames.isEmpty()) {
+                for (Profile p : [SELECT Id, Name FROM Profile WHERE Name IN :req.profileNames]) {
+                    profileIdMap.put(p.Name, p.Id);
                 }
-
-            } else {
-
-                for (PermissionSet ps : [SELECT Id, Name FROM PermissionSet WHERE Name IN :personaNames]) {
-
-                    personaIdMap.put(ps.Name, ps.Id);
-
-                }
-
             }
+            // Collect permission set ids by name
+            Map<String, Id> permSetIdMap = new Map<String, Id>();
+            if (req.permSetNames != null && !req.permSetNames.isEmpty()) {
+                for (PermissionSet ps : [SELECT Id, Name FROM PermissionSet WHERE Name IN :req.permSetNames]) {
+                    permSetIdMap.put(ps.Name, ps.Id);
+                }
+            }
+            Set<Id> personaIds = new Set<Id>();
+            personaIds.addAll(profileIdMap.values());
+            personaIds.addAll(permSetIdMap.values());
 
             Set<String> fieldKeys = new Set<String>(req.fieldApiNames);
-
+            // Query field permissions for selected personas
             List<FieldPermissions> perms = [
-
                 SELECT SObjectType, Field, ParentId, PermissionsRead, PermissionsEdit
-
                 FROM FieldPermissions
-
-                WHERE ParentId IN :personaIdMap.values()
-
+                WHERE ParentId IN :personaIds
             ];
+            Map<Id, String> profileNameById = new Map<Id, String>();
+            for (String name : profileIdMap.keySet()) profileNameById.put(profileIdMap.get(name), name);
+            Map<Id, String> permSetNameById = new Map<Id, String>();
+            for (String name : permSetIdMap.keySet()) permSetNameById.put(permSetIdMap.get(name), name);
 
-            Map<Id, String> personaApiNameMap = new Map<Id, String>();
-
-            for (String key : personaIdMap.keySet()) {
-
-                personaApiNameMap.put(personaIdMap.get(key), key);
-
-            }
-
+            // Build CSV rows
             for (FieldPermissions fp : perms) {
-
-                String[] fieldParts = fp.Field.split('\\.');
-
-                if (fieldParts.size() != 2) continue;
-
-                String objApi = fieldParts[0];
-
-                String fieldApi = fieldParts[1];
-
+                String[] parts = fp.Field.split('\\.');
+                if (parts.size() != 2) continue;
+                String objApi = parts[0];
+                String fieldApi = parts[1];
                 if (!req.objectApiNames.contains(objApi)) continue;
-
                 if (!fieldKeys.contains(fp.Field)) continue;
-
                 if (++recordCount > recordLimit) throw new AuraHandledException('Export limit exceeded (10,000 records). Please reduce your selection.');
-
-                String personaApi = personaApiNameMap.get(fp.ParentId);
-
-                String personaType = req.personaType == 'Profile' ? 'Profile' : 'PermissionSet';
-
-                if (fp.PermissionsRead) {
-
-                    rows.add(String.join(new List<String>{
-
-                        objApi,
-
-                        fieldApi,
-
-                        fp.PermissionsEdit ? 'Edit' : 'Read',
-
-                        personaType,
-
-                        personaApi
-
-                    }, ','));
-
+                String personaType;
+                String personaApi;
+                if (profileNameById.containsKey(fp.ParentId)) {
+                    personaType = 'Profile';
+                    personaApi = profileNameById.get(fp.ParentId);
+                } else {
+                    personaType = 'PermissionSet';
+                    personaApi = permSetNameById.get(fp.ParentId);
                 }
-
+                if (fp.PermissionsRead) {
+                    rows.add(String.join(new List<String>{
+                        objApi,
+                        fieldApi,
+                        personaType,
+                        personaApi,
+                        fp.PermissionsEdit ? 'Edit' : 'Read'
+                    }, ','));
+                }
             }
-
         } else {
-
             throw new AuraHandledException('Invalid export type.');
-
         }
-
+        if (recordCount == 0) {
+            throw new AuraHandledException('No permissions found for specified criteria.');
+        }
         return String.join(rows, '\n');
-
     }
 
- 
-
     // ----------- Helper Methods -----------
-
- 
 
     // Converts a string value to Boolean
 
@@ -801,8 +693,6 @@ private static Boolean toBool(String val) {
     return v == 'true' || v == '1' || v == 'yes' || v == 'y';
 
 }
-
- 
 
 /**
 
