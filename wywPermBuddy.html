@@ -1,0 +1,151 @@
+<template>
+
+    <lightning-card title="Permission Buddy">
+
+        <div class="slds-p-around_medium">
+
+            <lightning-combobox
+
+                label="Mode"
+
+                value={mode}
+
+                options={modeOptions}
+
+                onchange={handleModeChange}>
+
+            </lightning-combobox>
+
+ 
+
+            <lightning-combobox
+
+                label="Target Type"
+
+                value={targetType}
+
+                options={targetTypeOptions}
+
+                onchange={handleTargetTypeChange}>
+
+            </lightning-combobox>
+
+ 
+
+            <template if:true={showExport}>
+
+                <lightning-combobox
+
+                    label="Persona Type"
+
+                    value={personaType}
+
+                    options={personaTypeOptions}
+
+                    onchange={handlePersonaTypeChange}>
+
+                </lightning-combobox>
+
+ 
+
+                <lightning-dual-listbox
+
+                    label="Objects"
+
+                    source-label="Available"
+
+                    selected-label="Selected"
+
+                    options={objectOptions}
+
+                    value={selectedObjects}
+
+                    onchange={handleObjectChange}>
+
+                </lightning-dual-listbox>
+
+ 
+
+                <template if:true={showProfileSelect}>
+
+                    <lightning-dual-listbox
+
+                        label="Profiles"
+
+                        source-label="Available"
+
+                        selected-label="Selected"
+
+                        options={profileOptions}
+
+                        value={selectedProfiles}
+
+                        onchange={handleProfileChange}>
+
+                    </lightning-dual-listbox>
+
+                </template>
+
+                <template if:true={showPermSetSelect}>
+
+                    <lightning-dual-listbox
+
+                        label="Permission Sets"
+
+                        source-label="Available"
+
+                        selected-label="Selected"
+
+                        options={permSetOptions}
+
+                        value={selectedPermSets}
+
+                        onchange={handlePermSetChange}>
+
+                    </lightning-dual-listbox>
+
+                </template>
+
+ 
+
+                <template if:true={showFieldSelect}>
+
+                    <lightning-dual-listbox
+
+                        label="Fields"
+
+                        source-label="Available"
+
+                        selected-label="Selected"
+
+                        options={fieldOptions}
+
+                        value={selectedFields}
+
+                        onchange={handleFieldChange}>
+
+                    </lightning-dual-listbox>
+
+                </template>
+
+ 
+
+                <lightning-button label="Export CSV" onclick={handleExport} class="slds-m-top_medium export-btn"></lightning-button>
+
+            </template>
+
+ 
+
+            <template if:true={showImport}>
+
+                <lightning-input type="file" label="Import CSV" onchange={handleFileChange} class="import-file"></lightning-input>
+
+                <lightning-button label="Import" onclick={handleImport} class="slds-m-top_medium import-btn"></lightning-button>
+
+            </template>
+
+        </div>
+
+    </lightning-card>
+
+</template>
