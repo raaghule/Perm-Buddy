@@ -1,0 +1,18 @@
+<template>
+  <div class="multi-select">
+    <label class="slds-form-element__label">{label}</label>
+    <input type="text" class="search" placeholder="Search..." value={searchTerm} oninput={handleSearch} />
+    <ul class="options" if:true={filteredOptions.length}>
+      <template for:each={filteredOptions} for:item="opt">
+        <li key={opt.value} data-value={opt.value} onclick={selectOption}>{opt.label}</li>
+      </template>
+    </ul>
+    <div class="selected" if:true={selectedValues.length}>
+      <template for:each={selectedOptions} for:item="opt">
+        <span key={opt.value} class="pill">{opt.label}
+          <button type="button" data-value={opt.value} class="remove" onclick={removeSelection}>×</button>
+        </span>
+      </template>
+    </div>
+  </div>
+</template>

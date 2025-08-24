@@ -1,47 +1,48 @@
 .slds-p-around_medium {
-
-    background: #f9f9f9;
-
+    background: #fff;
     border-radius: 8px;
-
-    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
-
+    box-shadow: 0 1px 3px rgba(60,64,67,0.15);
     margin-bottom: 16px;
-
 }
 
+.pb-header {
+    text-align: center;
+    padding: 1rem 0;
+    background: #f8f9fa;
+}
+.pb-header h1 {
+    font-weight: 500;
+    color: #202124;
+    margin-bottom: 0.25rem;
+}
+.pb-header p {
+    font-size: 0.9rem;
+}
+.info {
+    margin-bottom: 1rem;
+    color: #5f6368;
+}
 .export-btn, .import-btn {
-
     min-width: 120px;
-
     font-weight: 600;
-
-    background: #0070d2;
-
+    background: #1a73e8;
     color: #fff;
-
     border-radius: 4px;
-
 }
-
 .export-btn:hover, .import-btn:hover {
-
-    background: #005fb2;
-
-    color: #fff;
-
+    background: #1558b0;
 }
-
+.button-container {
+    text-align: center;
+}
 .import-file {
-
     margin-top: 12px;
-
     margin-bottom: 12px;
-
 }
-
-.lightning-dual-listbox {
-
-    margin-bottom: 16px;
-
+.support {
+    text-align: center;
+    margin-top: 1rem;
+}
+.support a {
+    color: #1a73e8;
 }
