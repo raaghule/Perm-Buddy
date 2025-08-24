@@ -5,13 +5,19 @@
     margin-bottom: 16px;
 }
 
-.header {
+.pb-header {
     text-align: center;
-    margin-bottom: 1rem;
+    padding: 1rem 0;
+    background: #f8f9fa;
 }
-.header h1 {
-    font-weight: 400;
+.pb-header h1 {
+    font-weight: 500;
     color: #202124;
+    margin-bottom: 0.25rem;
+}
+.pb-header p {
+    font-size: 0.9rem;
+
 }
 .info {
     margin-bottom: 1rem;
@@ -26,6 +32,11 @@
 }
 .export-btn:hover, .import-btn:hover {
     background: #1558b0;
+
+}
+.button-container {
+    text-align: center;
+
 }
 .import-file {
     margin-top: 12px;

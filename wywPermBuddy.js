@@ -7,8 +7,10 @@ import getFieldsForObjects from '@salesforce/apex/wywPermBuddyController.getFiel
 import exportPermissions from '@salesforce/apex/wywPermBuddyController.exportPermissions';
 import processCsv from '@salesforce/apex/wywPermBuddyController.processCsv';
 import { ShowToastEvent } from 'lightning/platformShowToastEvent';
-import fieldSample from '@salesforce/resourceUrl/fieldSample';
-import objectSample from '@salesforce/resourceUrl/objectSample';
+
+import wywFieldSampleCSV from '@salesforce/resourceUrl/wywFieldSampleCSV';
+import wywObjectSampleCSV from '@salesforce/resourceUrl/wywObjectSampleCSV';
+
 
 export default class WywPermBuddy extends LightningElement {
     @track mode = 'Export';
@@ -24,8 +26,10 @@ export default class WywPermBuddy extends LightningElement {
     @track fileContent = '';
     @track req = {};
 
-    fieldSampleUrl = fieldSample;
-    objectSampleUrl = objectSample;
+
+    fieldSampleUrl = wywFieldSampleCSV;
+    objectSampleUrl = wywObjectSampleCSV;
+
 
     modeOptions = [
         { label: 'Export', value: 'Export' },
