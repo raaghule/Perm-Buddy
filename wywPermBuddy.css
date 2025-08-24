@@ -1,0 +1,47 @@
+.slds-p-around_medium {
+
+    background: #f9f9f9;
+
+    border-radius: 8px;
+
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+
+    margin-bottom: 16px;
+
+}
+
+.export-btn, .import-btn {
+
+    min-width: 120px;
+
+    font-weight: 600;
+
+    background: #0070d2;
+
+    color: #fff;
+
+    border-radius: 4px;
+
+}
+
+.export-btn:hover, .import-btn:hover {
+
+    background: #005fb2;
+
+    color: #fff;
+
+}
+
+.import-file {
+
+    margin-top: 12px;
+
+    margin-bottom: 12px;
+
+}
+
+.lightning-dual-listbox {
+
+    margin-bottom: 16px;
+
+}
